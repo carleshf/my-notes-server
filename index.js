@@ -35,6 +35,22 @@ app.use(cors())
 // Log HTTP requests
 app.use(morgan('combined'))
 
+// Adding authentication middleware
+const checkJwt = jwt({
+    secret: jwksRsa.expressJwtSecret({
+        cache: true,
+        rateLimit: true,
+        jwksRequestsPerMinute: 5,
+        jwksUri: process.env.AUTH0_DOMAIN + '/.well-known/jwks.json'
+    }),
+
+    // Validate the audience and the issuer.
+    audience: process.env.AUTH0_CLIENT_ID,
+    issuer: process.env.AUTH0_DOMAIN + '/',
+    algorithms: ['RS256']
+})
+
+
 // Gretting 
 app.get('/', (req, res) => {
     res.send('hello moon')
@@ -42,7 +58,7 @@ app.get('/', (req, res) => {
 
 
 // Insert a new note
-app.post('/', (req, res) => {
+app.post('/', checkJwt, (req, res) => {
     const new_note = req.body
     if(new_note.id === '') {
         new_note.id = shortid.generate()
@@ -69,9 +85,8 @@ app.post('/', (req, res) => {
 })
 
 // Get all notes for author
-app.get('/author', (req, res) => {
-    //let author = req.user === undefined ? null : req.user.nickname
-	let author = 'kuragari.ch'
+app.get('/author', checkJwt, (req, res) => {
+    let author = req.user === undefined ? null : req.user.nickname
     notesRepo.getByAuthor(author)
         .then( (rst) => {
 			rst = rst.map( (x) => {
@@ -88,9 +103,8 @@ app.get('/author', (req, res) => {
 })
 
 // Get a specific note from an author
-app.get('/note/:id', (req, res) => {
-    //let author = req.user === undefined ? null : req.user.nickname
-	let author = 'kuragari.ch'
+app.get('/note/:id', checkJwt, (req, res) => {
+    let author = req.user === undefined ? null : req.user.nickname
     notesRepo.getByIdAndAuthor(req.params.id, author)
         .then( (rst) => {
             res.send(rst)
@@ -103,9 +117,8 @@ app.get('/note/:id', (req, res) => {
 })
 
 // Delete a specific note
-app.delete('/delete/:id', (req, res) => {
-    //let author = req.user === undefined ? null : req.user.nickname
-	let author = 'kuragari.ch'
+app.delete('/delete/:id', checkJwt, (req, res) => {
+    let author = req.user === undefined ? null : req.user.nickname
     notesRepo.delete(req.params.id, author)
         .then( (rst) => {
             res.status(200).send(rst)
