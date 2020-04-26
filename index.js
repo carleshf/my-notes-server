@@ -77,3 +77,5 @@ app.get('/about', (req, res) => {
 app.get('/contact', (req, res) => {
     res.send('<h1>contact</h1>')
 })
+
+app.listen(port, () => { console.log('listening on port ${port}') })
