@@ -102,6 +102,21 @@ app.get('/note/:id', (req, res) => {
         })
 })
 
+// Delete a specific note
+app.delete('/delete/:id', (req, res) => {
+    //let author = req.user === undefined ? null : req.user.nickname
+	let author = 'kuragari.ch'
+    notesRepo.delete(req.params.id, author)
+        .then( (rst) => {
+            res.status(200).send(rst)
+        })
+        .catch( (err) => {
+            console.log('ERROR - /delete/:id')
+            console.log(err)
+            res.sendStatus(500)
+        } )
+})
+
 // Get a public note using its short ID
 app.get('/public/:id', (req, res) => {
     notesRepo.getByIdPublic(req.params.id, false)
@@ -118,5 +133,7 @@ app.get('/public/:id', (req, res) => {
             res.sendStatus(500)
         })
 })
+
+
 
 app.listen(port, () => { console.log(`Listening on port ${port}`) })
