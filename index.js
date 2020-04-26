@@ -74,6 +74,10 @@ app.get('/author', (req, res) => {
 	let author = 'kuragari.ch'
     notesRepo.getByAuthor(author)
         .then( (rst) => {
+			rst = rst.map( (x) => {
+				delete x.content
+				return(x)
+			} )
             res.send(rst)
         })
         .catch( (err) => {
