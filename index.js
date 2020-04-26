@@ -87,4 +87,36 @@ app.get('/author', (req, res) => {
         } )
 })
 
+// Get a specific note from an author
+app.get('/note/:id', (req, res) => {
+    //let author = req.user === undefined ? null : req.user.nickname
+	let author = 'kuragari.ch'
+    notesRepo.getByIdAndAuthor(req.params.id, author)
+        .then( (rst) => {
+            res.send(rst)
+        })
+        .catch( (err) => {
+            console.log('ERROR - /note/:id')
+            console.log(err)
+            res.sendStatus(500)
+        })
+})
+
+// Get a public note using its short ID
+app.get('/public/:id', (req, res) => {
+    notesRepo.getByIdPublic(req.params.id, false)
+        .then( (rst) => {
+            if( rst === undefined || !rst.public ) {
+                res.send([])
+            } else {
+                res.send(rst)
+            }
+        })
+        .catch( (err) => {
+            console.log('ERROR - /note/:id')
+            console.log(err)
+            res.sendStatus(500)
+        })
+})
+
 app.listen(port, () => { console.log(`Listening on port ${port}`) })
