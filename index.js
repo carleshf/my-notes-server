@@ -56,6 +56,15 @@ const Notes = require('./notes')
 const app = express()
 const port = process.env.PORT || 3000
 
+// open database connection
+const dao = new DAO('./database.sqlite3')
+const notesRepo = new Notes(dao)
+notesRepo.createTable()
+    .catch((err) => {
+        console.log('Error: ')
+        console.log(JSON.stringify(err))
+    })
+
 // enhance your app security with Helmet
 app.use(helmet())
 
