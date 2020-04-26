@@ -54,6 +54,7 @@ const Notes = require('./notes')
 
 // define the Express app
 const app = express()
+const port = process.env.PORT || 3000
 
 // enhance your app security with Helmet
 app.use(helmet())
@@ -78,4 +79,4 @@ app.get('/contact', (req, res) => {
     res.send('<h1>contact</h1>')
 })
 
-app.listen(port, () => { console.log('listening on port ${port}') })
+app.listen(port, () => { console.log(`Listening on port ${port}`) })
