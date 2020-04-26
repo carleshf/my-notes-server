@@ -1,45 +1,3 @@
-/*const http = require('http')
-const port = process.env.PORT || 3000
-
-const winston = require('winston');
-
-// create logger
-const logger = winston.createLogger({
-    level: 'info',
-    format: winston.format.json(),
-    defaultMeta: { service: 'user-service' },
-    transports: [
-        //new winston.transports.File({ filename: 'snotes.error.log', level: 'error' }),
-        new winston.transports.File({ filename: 'snotes.all.log' })
-    ]
-});
-
-const server = http.createServer(function (req, res) {
-    logger.info('Incoming')
-    res.writeHead(200, {'Content-Type': 'text/html'}) // http header
-    var url = req.url
-    logger.info('Incoming - ', url)
-    logger.info('Incoming - ', req)
-    if(url ==='/about'){
-        res.write('<h1>about us page<h1>'); //write a response
-        res.end(); //end the response
-    } else if(url ==='/contact') {
-        res.write('<h1>contact us page<h1>'); //write a response
-        res.end(); //end the response
-    } else {
-        res.write('<h1>Hello World!<h1>'); //write a response
-        res.end(); //end the response
-    }
-})
-
-
-server.listen(port, (err) => {
-    if (err) {
-        return console.log('something bad happened', err)
-    }
-    console.log(`server is listening on ${port}`)
-})*/
-
 const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
@@ -56,7 +14,7 @@ const Notes = require('./notes')
 const app = express()
 const port = process.env.PORT || 3000
 
-// open database connection
+// Open database connection
 const dao = new DAO('./database.sqlite3')
 const notesRepo = new Notes(dao)
 notesRepo.createTable()
@@ -65,27 +23,64 @@ notesRepo.createTable()
         console.log(JSON.stringify(err))
     })
 
-// enhance your app security with Helmet
+// Enhance your app security with Helmet
 app.use(helmet())
 
-// use bodyParser to parse application/json content-type
+// Use bodyParser to parse application/json content-type
 app.use(bodyParser.json())
 
-// enable all CORS requests
+// Enable all CORS requests
 app.use(cors())
 
-// log HTTP requests
+// Log HTTP requests
 app.use(morgan('combined'))
 
-
+// Gretting 
 app.get('/', (req, res) => {
     res.send('hello moon')
 })
-app.get('/about', (req, res) => {
-    res.send('<h1>about</h1>')
+
+
+// Insert a new note
+app.post('/', (req, res) => {
+    const new_note = req.body
+    if(new_note.id === '') {
+        new_note.id = shortid.generate()
+        notesRepo.create(new_note)
+            .then( (rst) => {
+                res.status(200).send({ 'id': new_note['id'] })
+            })
+            .catch( (err) => {
+                console.log('ERROR - / (new)')
+                console.log(err)
+                res.sendStatus(500)
+            })
+    } else {
+        notesRepo.update(new_note)
+            .then( (rst) => {
+                res.status(200).send({ 'id':new_note['id'] })
+            })
+            .catch( (err) => {
+                console.log('ERROR - / (update)')
+                console.log(err)
+                res.sendStatus(500)
+            })
+    }
 })
-app.get('/contact', (req, res) => {
-    res.send('<h1>contact</h1>')
+
+// Get all notes for author
+app.get('/author', (req, res) => {
+    //let author = req.user === undefined ? null : req.user.nickname
+	let author = 'kuragari.ch'
+    notesRepo.getByAuthor(author)
+        .then( (rst) => {
+            res.send(rst)
+        })
+        .catch( (err) => {
+            console.log('ERROR - /author')
+            console.log(err)
+            res.sendStatus(500)
+        } )
 })
 
 app.listen(port, () => { console.log(`Listening on port ${port}`) })
